@@ -1,11 +1,12 @@
 const express = require("express");
 
 const {
-	listContacts,
-	getContactById,
-	removeContact,
 	addContact,
+	getContactById,
+	listContacts,
+	removeContact,
 	updateContact,
+	updateStatusContact,
 } = require("../../models/contacts");
 const {
 	newContactValidator,
@@ -16,8 +17,11 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
 	const contacts = await listContacts();
-	res.send({
-		contacts,
+	if (contacts) {
+		return res.send({ contacts });
+	}
+	return res.status(404).send({
+		message: "Not found",
 	});
 });
 
@@ -72,16 +76,36 @@ router.put("/:contactId", async (req, res, next) => {
 	if (!name && !email && !phone) {
 		return res.status(400).send({ message: "missing fields" });
 	}
+
+	const isValid = updateContactValidator.validate(body);
+
+	if (isValid.error) {
+		return res.status(400).send({ message: isValid.error.message });
+	}
+
 	const updatedContact = await updateContact(id, body);
-	const isValid = updateContactValidator.validate(updatedContact);
 
 	if (!updatedContact) {
 		res.status(404).send({ message: "Not found" });
-	} else if (isValid.error) {
-		res.status(400).send({ message: isValid.error.message });
 	} else {
 		res.send({ updatedContact });
 	}
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+	const id = req.params.contactId;
+	const { favorite } = req.body;
+
+	if (!favorite) {
+		return res.status(400).send({ message: "missing field favorite" });
+	}
+	const updatedContact = await updateStatusContact(id, favorite);
+
+	if (!updatedContact) {
+		return res.status(404).send({ message: "Not found" });
+	}
+
+	res.send({ updatedContact });
 });
 
 module.exports = router;
