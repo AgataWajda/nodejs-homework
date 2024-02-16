@@ -1,9 +1,10 @@
 const express = require("express");
+
 const {
-	listContacts,
-	getContactById,
-	removeContact,
 	addContact,
+	getContactById,
+	listContacts,
+	removeContact,
 	updateContact,
 	updateStatusContact,
 } = require("../../models/contacts");

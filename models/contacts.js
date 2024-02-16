@@ -66,10 +66,10 @@ const updateStatusContact = async (contactId, body) => {
 };
 
 module.exports = {
-	listContacts,
-	getContactById,
-	removeContact,
 	addContact,
+	getContactById,
+	listContacts,
+	removeContact,
 	updateContact,
 	updateStatusContact,
 };
