@@ -1,3 +1,4 @@
+const bCrypt = require("bcryptjs");
 const { model, Schema } = require("mongoose");
 
 const user = new Schema({
@@ -20,6 +21,14 @@ const user = new Schema({
 		default: null,
 	},
 });
+
+user.methods.setPassword = function (password) {
+	this.password = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
+};
+
+user.methods.validPassword = function (password) {
+	return bCrypt.compareSync(password, this.password);
+};
 
 const User = model("user", user);
 
