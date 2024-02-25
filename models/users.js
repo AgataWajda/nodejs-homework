@@ -43,7 +43,8 @@ const loginUser = async (body) => {
 
 const logout = async (body) => {
 	const { _id } = body;
+
 	await User.findByIdAndUpdate(_id, { token: null });
 };
 
-module.exports = { loginUser, registerUser, logout };
+module.exports = { loginUser, logout, registerUser };

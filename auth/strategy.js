@@ -1,4 +1,4 @@
-const { Strategy: JwtStrategy, ExtractJwt } = require("passport-jwt");
+const { Strategy: ExtractJwt, JwtStrategy } = require("passport-jwt");
 const passport = require("passport");
 const User = require("../schemata/usersSchema");
 

@@ -1,9 +1,9 @@
 const express = require("express");
-const passport = require("passport");
-require("../../auth/strategy");
 
-const { userValidator } = require("../../validators/usersValidator");
+require("../../auth/strategy");
+const auth = require("../../auth/auth");
 const { logout, loginUser, registerUser } = require("../../models/users");
+const { userValidator } = require("../../validators/usersValidator");
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.post("/login", async (req, res, next) => {
 	if (!user) {
 		return res.status(401).send({ message: "Email or password is wrong" });
 	}
-	console.log(req.headers);
+
 	res.send({
 		token: user.token,
 		user: {
@@ -45,14 +45,16 @@ router.post("/login", async (req, res, next) => {
 	});
 });
 
-router.get(
-	"/logout",
-	passport.authenticate("jwt", { session: false }),
-	async (req, res, next) => {
-		const body = req.body;
-		await logout(body);
-		res.status(204);
-	}
-);
+router.get("/logout", auth, async (req, res, next) => {
+	const user = req.user;
+	await logout(user);
+	res.status(204).send();
+});
+
+router.get("/current", auth, async (req, res, next) => {
+	const user = req.user;
+	const { email, subscription } = user;
+	res.send({ email, subscription });
+});
 
 module.exports = router;
