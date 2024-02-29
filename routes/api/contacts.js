@@ -1,5 +1,8 @@
 const express = require("express");
 
+require("../../auth/strategy");
+const auth = require("../../auth/auth");
+
 const {
 	addContact,
 	getContactById,
@@ -15,8 +18,9 @@ const {
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-	const contacts = await listContacts();
+router.get("/", auth, async (req, res, next) => {
+	const ownerId = req.user._id;
+	const contacts = await listContacts(ownerId);
 	if (contacts) {
 		return res.send({ contacts });
 	}
@@ -25,9 +29,10 @@ router.get("/", async (req, res, next) => {
 	});
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", auth, async (req, res, next) => {
 	const id = req.params.contactId;
-	const contact = await getContactById(id);
+	const ownerId = req.user._id;
+	const contact = await getContactById(id, ownerId);
 	if (contact) {
 		res.send({
 			contact,
@@ -39,9 +44,10 @@ router.get("/:contactId", async (req, res, next) => {
 	}
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", auth, async (req, res, next) => {
 	const body = req.body;
 	const { name, email, phone } = req.body;
+	const ownerId = req.user._id;
 
 	if (!name || !email || !phone) {
 		return res.status(400).send({
@@ -52,15 +58,16 @@ router.post("/", async (req, res, next) => {
 	if (isValid.error) {
 		res.status(400).send({ message: isValid.error.message });
 	} else {
-		const contact = await addContact(body);
+		const contact = await addContact(body, ownerId);
 		res.status(201).send({ contact });
 	}
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete("/:contactId", auth, async (req, res, next) => {
 	const id = req.params.contactId;
-	const isDeleted = await removeContact(id);
-
+	const ownerId = req.user._id;
+	const isDeleted = await removeContact(id, ownerId);
+	console.log(isDeleted);
 	if (isDeleted) {
 		res.send({ message: "contact deleted" });
 	} else {
@@ -68,9 +75,10 @@ router.delete("/:contactId", async (req, res, next) => {
 	}
 });
 
-router.put("/:contactId", async (req, res, next) => {
+router.put("/:contactId", auth, async (req, res, next) => {
 	const id = req.params.contactId;
 	const body = req.body;
+	const ownerId = req.user._id;
 	const { name, email, phone } = req.body;
 
 	if (!name && !email && !phone) {
@@ -83,7 +91,7 @@ router.put("/:contactId", async (req, res, next) => {
 		return res.status(400).send({ message: isValid.error.message });
 	}
 
-	const updatedContact = await updateContact(id, body);
+	const updatedContact = await updateContact(id, body, ownerId);
 
 	if (!updatedContact) {
 		res.status(404).send({ message: "Not found" });
@@ -92,14 +100,15 @@ router.put("/:contactId", async (req, res, next) => {
 	}
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", auth, async (req, res, next) => {
 	const id = req.params.contactId;
+	const ownerId = req.user._id;
 	const { favorite } = req.body;
 
 	if (!favorite) {
 		return res.status(400).send({ message: "missing field favorite" });
 	}
-	const updatedContact = await updateStatusContact(id, favorite);
+	const updatedContact = await updateStatusContact(id, favorite, ownerId);
 
 	if (!updatedContact) {
 		return res.status(404).send({ message: "Not found" });

@@ -1,36 +1,41 @@
 const Contacts = require("../schemata/contactSchema");
 
-const listContacts = async () => {
+const listContacts = async (ownerId) => {
 	try {
-		const contacts = await Contacts.find();
+		const filter = { owner: ownerId };
+		const contacts = await Contacts.find(filter);
 		return contacts;
 	} catch (error) {
 		console.log(error.message);
 	}
 };
 
-const getContactById = async (contactId) => {
+const getContactById = async (contactId, ownerId) => {
 	try {
-		const contact = await Contacts.findById(contactId);
+		const filter = { _id: contactId, owner: ownerId };
+		const contact = await Contacts.findOne(filter);
 		return contact;
 	} catch (error) {
 		console.log(error.message);
 	}
 };
 
-const removeContact = async (contactId) => {
+const removeContact = async (contactId, ownerId) => {
 	try {
-		const deletedContact = await Contacts.deleteOne({ _id: contactId });
+		const filter = { _id: contactId, owner: ownerId };
+		const deletedContact = await Contacts.deleteOne(filter);
 		return deletedContact;
 	} catch (error) {
 		console.log(error.message);
 	}
 };
 
-const addContact = async (body) => {
+const addContact = async (body, ownerId) => {
 	try {
-		const { name, email, phone } = body;
-		const contact = new Contacts({ name, email, phone });
+		const contact = new Contacts({
+			...body,
+			owner: ownerId,
+		});
 		await contact.save();
 		return contact;
 	} catch (error) {
@@ -38,9 +43,9 @@ const addContact = async (body) => {
 	}
 };
 
-const updateContact = async (contactId, body) => {
+const updateContact = async (contactId, body, ownerId) => {
 	try {
-		const filter = { _id: contactId };
+		const filter = { _id: contactId, owner: ownerId };
 		const contact = await Contacts.findOneAndUpdate(filter, body, {
 			returnDocument: "after",
 		});
@@ -50,7 +55,7 @@ const updateContact = async (contactId, body) => {
 	}
 };
 
-const updateStatusContact = async (contactId, body) => {
+const updateStatusContact = async (contactId, body, ownerId) => {
 	try {
 		const filter = { _id: contactId };
 		const update = { favorite: body };
@@ -58,7 +63,7 @@ const updateStatusContact = async (contactId, body) => {
 		const contact = await Contacts.findOneAndUpdate(filter, update, {
 			returnDocument: "after",
 		});
-		console.log(contact);
+
 		return contact;
 	} catch (error) {
 		console.log(error.message);
