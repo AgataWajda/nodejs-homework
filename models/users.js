@@ -1,3 +1,5 @@
+const gravatar = require("gravatar");
+const Jimp = require("jimp");
 const jwt = require("jsonwebtoken");
 
 const User = require("../schemata/usersSchema");
@@ -7,12 +9,18 @@ const SECRET = process.env.SECRET;
 const registerUser = async (body) => {
 	try {
 		const { email, password } = body;
-		const doesExist = await User.findOne({ email });
 
+		const doesExist = await User.findOne({ email });
 		if (doesExist) {
 			return null;
 		}
-		const user = new User({ email });
+
+		const avatarURL = gravatar.url(email, {
+			protocol: "http",
+			s: "250",
+			default: "default",
+		});
+		const user = new User({ email, avatarURL });
 		user.setPassword(password);
 		await user.save();
 		return user;
@@ -58,4 +66,18 @@ const logout = async (body) => {
 	}
 };
 
-module.exports = { loginUser, logout, registerUser };
+const updateAvatar = async (id, filePath) => {
+	try {
+		const resizedAvatar = await Jimp.read(filePath);
+		await resizedAvatar.resize(250, 250).write(`public/avatars/${id}.jpg`);
+		await User.findByIdAndUpdate(id, {
+			avatarURL: `avatars/${id}.jpg`,
+		});
+
+		return `avatars/${id}.jpg`;
+	} catch (error) {
+		console.log(error.message);
+	}
+};
+
+module.exports = { loginUser, logout, registerUser, updateAvatar };
