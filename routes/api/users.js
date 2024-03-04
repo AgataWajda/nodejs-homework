@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const { writeFile } = require("fs/promises");
+const { unlink, writeFile } = require("fs/promises");
 
 require("../../auth/strategy");
 const auth = require("../../auth/auth");
@@ -16,7 +16,7 @@ const { userValidator } = require("../../validators/usersValidator");
 const router = express.Router();
 const upload = multer();
 
-router.post("/signup", upload.single("picture"), async (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
 	const body = req.body;
 	const isValid = userValidator.validate(body);
 
@@ -78,6 +78,7 @@ router.patch(
 			const filePath = path.join(process.cwd(), "tmp", `temporary${fileExt}`);
 			await writeFile(filePath, req.file.buffer);
 			const fileName = await updateAvatar(userId, filePath);
+			await unlink(filePath);
 			if (!fileName) {
 				throw new Error("File saving error");
 			}
