@@ -13,6 +13,7 @@ const contacts = new Schema({
 	},
 	favorite: {
 		type: Boolean,
+		enum: [true, false],
 		default: false,
 	},
 
