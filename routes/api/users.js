@@ -10,6 +10,7 @@ const {
 	loginUser,
 	registerUser,
 	updateAvatar,
+	verify,
 } = require("../../models/users");
 const { userValidator } = require("../../validators/usersValidator");
 
@@ -91,5 +92,15 @@ router.patch(
 		}
 	}
 );
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
+	const { verificationToken } = req.body;
+	const verifyUser = await verify(verificationToken);
+	if (!verifyUser) {
+		return res.status(404).send({ message: "User not found" });
+	}
+
+	res.send({ message: "Verification successful" });
+});
 
 module.exports = router;

@@ -80,4 +80,26 @@ const updateAvatar = async (id, filePath) => {
 	}
 };
 
-module.exports = { loginUser, logout, registerUser, updateAvatar };
+const verify = async (verificationToken) => {
+	try {
+		const user = await User.findOneAndUpdate(
+			{ verificationToken },
+			{ verificationToken: null, verify: true },
+			{ returnDocument: "after" }
+		);
+		if (!user) {
+			return null;
+		}
+		return user;
+	} catch (error) {
+		console.log(error.message);
+	}
+};
+
+module.exports = {
+	loginUser,
+	logout,
+	registerUser,
+	updateAvatar,
+	verify,
+};
