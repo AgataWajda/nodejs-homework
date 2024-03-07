@@ -9,6 +9,7 @@ const {
 	logout,
 	loginUser,
 	registerUser,
+	sendMailAgain,
 	updateAvatar,
 	verify,
 } = require("../../models/users");
@@ -103,4 +104,19 @@ router.get("/verify/:verificationToken", async (req, res, next) => {
 	res.send({ message: "Verification successful" });
 });
 
+router.post("/verify", async (req, res, next) => {
+	const { email } = req.body;
+	if (!email) {
+		return res.send(400).send({ message: "missing required field email" });
+	}
+
+	const isVerify = await sendMailAgain(email);
+	if (isVerify) {
+		return res
+			.status(400)
+			.send({ message: "Verification has already been passed" });
+	}
+
+	res.send({ message: "Verification email sent" });
+});
 module.exports = router;

@@ -84,6 +84,21 @@ const updateAvatar = async (id, filePath) => {
 	}
 };
 
+const sendMailAgain = async (email) => {
+	try {
+		const user = await User.findOne({ email });
+		const { verify, verificationToken } = user;
+
+		if (verify) {
+			return verify;
+		}
+		await registerEmail(email, verificationToken);
+		return verify;
+	} catch (error) {
+		console.log(error);
+	}
+};
+
 const verify = async (verificationToken) => {
 	try {
 		const user = await User.findOne({ verificationToken });
@@ -106,6 +121,7 @@ module.exports = {
 	loginUser,
 	logout,
 	registerUser,
+	sendMailAgain,
 	updateAvatar,
 	verify,
 };
