@@ -94,7 +94,7 @@ router.patch(
 );
 
 router.get("/verify/:verificationToken", async (req, res, next) => {
-	const { verificationToken } = req.body;
+	const verificationToken = req.params.verificationToken;
 	const verifyUser = await verify(verificationToken);
 	if (!verifyUser) {
 		return res.status(404).send({ message: "User not found" });

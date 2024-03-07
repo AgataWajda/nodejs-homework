@@ -1,7 +1,9 @@
 const gravatar = require("gravatar");
 const Jimp = require("jimp");
 const jwt = require("jsonwebtoken");
+const { nanoid } = require("nanoid");
 
+const registerEmail = require("./email");
 const User = require("../schemata/usersSchema");
 
 const SECRET = process.env.SECRET;
@@ -20,9 +22,11 @@ const registerUser = async (body) => {
 			s: "250",
 			default: "default",
 		});
-		const user = new User({ email, avatarURL });
+		const verificationToken = nanoid();
+		const user = new User({ email, avatarURL, verificationToken });
 		user.setPassword(password);
 		await user.save();
+		await registerEmail(email, verificationToken);
 		return user;
 	} catch (error) {
 		console.log(error.message);
@@ -35,7 +39,7 @@ const loginUser = async (body) => {
 		const filter = { email };
 		const user = await User.findOne(filter);
 
-		if (user && user.validPassword(password)) {
+		if (user && user.validPassword(password) && user.verify) {
 			const payload = {
 				id: user.id,
 			};
@@ -82,14 +86,16 @@ const updateAvatar = async (id, filePath) => {
 
 const verify = async (verificationToken) => {
 	try {
-		const user = await User.findOneAndUpdate(
-			{ verificationToken },
-			{ verificationToken: null, verify: true },
-			{ returnDocument: "after" }
-		);
+		const user = await User.findOne({ verificationToken });
+
 		if (!user) {
 			return null;
 		}
+		await User.findByIdAndUpdate(user._id, {
+			verificationToken: null,
+			verify: true,
+		});
+
 		return user;
 	} catch (error) {
 		console.log(error.message);
