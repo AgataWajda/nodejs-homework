@@ -8,7 +8,7 @@ const { BASE_URL, DOMAIN, MAIL_SENDER, MAILGUN_API_KEY } = process.env;
 
 const client = mailgun.client({
 	username: "api",
-	key: MAILGUN_API_KEY || "key-yourkeyhere",
+	key: MAILGUN_API_KEY, // "key-yourkeyhere",
 });
 
 const registerEmail = (email, verificationToken) => {
